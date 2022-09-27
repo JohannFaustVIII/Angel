@@ -4,7 +4,6 @@ import sys
 
 if __name__ == "__main__":
     
-    print(len(sys.argv))
     message = sys.argv[1]
     repeat = int(sys.argv[2])    
 
