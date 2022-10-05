@@ -3,9 +3,27 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
+class Country:
 
-def get_text(text : str) -> str:
-    return text if text else 'No data'
+    position = ""
+    country = ""
+    infected = "No data"
+    dead = "No data"
+    is_poland = False
+
+    def __init__(self, position : str, country : str, infected : str, dead : str) -> None:
+        self.position = position
+        self.country = country
+        self.infected = Country.__to_text(infected)
+        self.dead = Country.__to_text(dead)
+        self.is_poland = country == "Poland"
+
+    def __to_text(text : str) -> str:
+        return text if text else 'No data'
+
+    def get_message(self) -> str:
+        return f"{self.position:>4}\t {self.country:>30}\t {self.infected:>12}\t {self.dead:>12}"
+
 
 def get_page_to_parse() -> BeautifulSoup:
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -13,34 +31,28 @@ def get_page_to_parse() -> BeautifulSoup:
     return BeautifulSoup(driver.page_source, 'html.parser')
 
 def get_rows_with_countries(page : BeautifulSoup) -> list[Tag]:
-    return [t for t in page.find_all("tr") if t.find_all("a")]
+    all_tables = [t for t in page.find_all("tr") if t.find_all("a")]
+    return all_tables[:int(len(all_tables)/3)]
 
-def map_column_to_text(row : Tag) -> tuple[str, bool]:
+def map_column_to_text(row : Tag) -> Country:
     columns = row.find_all("td")
     index = columns[0].text
     country = columns[1].text
-    infected = get_text(columns[3].text)
-    dead = get_text(columns[5].text)
+    infected = columns[3].text
+    dead = columns[5].text
 
-    message = f"{index:>4}\t {country:>30}\t {infected:>12}\t {dead:>12}"
-    isPoland = country == "Poland"
+    return Country(index, country, infected, dead)
 
-    return message, isPoland
+def print_countries_stats(countries : list[Country]):
+    for stat in countries:
+        print(stat.get_message())
 
-def print_countries_stats(countries : list[tuple[str, bool]]):
-    keep_text = lambda country : country[0]
-    countries_stats = list(map(keep_text, countries))
+def print_poland_stats(countries : list[Country]):
+    find_poland = lambda country : country.is_poland
 
-    for stat in countries_stats:
-        print(stat)
+    poland_row = list(filter(find_poland, countries))
 
-def print_poland_stats(countries : list[tuple[str, bool]]):
-    find_poland = lambda country : country[1]
-    keep_text = lambda country : country[0]
-
-    poland_row = list(map(keep_text, list(filter(find_poland, countries))))
-
-    print(f"\nPoland stats:\n{poland_row[0]}")
+    print(f"\nPoland stats:\n{poland_row[0].get_message()}")
 
 
 if __name__ == "__main__":
