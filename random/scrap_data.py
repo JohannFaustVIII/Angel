@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup, Tag
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
 class Country:
@@ -26,7 +27,9 @@ class Country:
 
 
 def get_page_to_parse() -> BeautifulSoup:
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    options = Options()
+    options.headless = True
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get('https://www.worldometers.info/coronavirus/')
     return BeautifulSoup(driver.page_source, 'html.parser')
 
