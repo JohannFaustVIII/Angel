@@ -3,10 +3,6 @@ with open("aoc/2021/d7.input") as file:
 
     positions = list(map(lambda x: int(x), line.strip().split(",")))
 
-print(positions)
-print(min(positions))
-print(max(positions))
-
 def finder(positions : list[int], formula) -> int:
     return min([sum([formula(i, position) for position in positions]) for i in range(max(positions)+1)])
 
