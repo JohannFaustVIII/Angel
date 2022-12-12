@@ -20,8 +20,6 @@ with open("aoc/2022/d12.input") as file:
                 row.append(ord(c) - ord("a") + 1)
         map.append(row)
 
-print(map, start, end)
-
 def compute_path(map: list[list[int]], start : tuple[int, int], end : tuple[int, int]) -> int:
     width = len(map[0])
     height = len(map)
