@@ -13,87 +13,107 @@ def parse_input(inp):
       result.append((x[0], int(x[1]), x[2]))
    return result
 
-def part_1(vals):
-   y, x = 0, 0
-   movement = { 'U' : (-1, 0), 'R' : (0, 1), 'D' : (1, 0), 'L' : (0, -1)}
-   history = set()
-   directions = {}
+def draw_lines(vals):
+   y = 0
+   x = 0
+   lines = []
 
    for v in vals:
-      vector = movement[v[0]]
-      if (y, x) not in directions:
-         directions[(y, x)] = v[0]
+      d = v[0]
+      length = v[1]
+
+      if d in ['U', 'D']:
+         y += length * (-1 if d == 'U' else 1)
       else:
-         directions[(y, x)] += v[0]
-      history.add((y, x))
-      for _ in range(v[1]):
-         y, x = y + vector[0], x + vector[1]
-         if (y, x) not in directions:
-            directions[(y, x)] = v[0]
-         else:
-            if (y, x) == (0, 0):
-               directions[(y, x)] = v[0] + directions[(y, x)]
-            else:
-               directions[(y, x)] += v[0]
-         history.add((y, x))         
+         start_x = x
+         x += length * (-1 if d == 'L' else 1)
 
-   ys = [p[0] for p in list(history)]
-   xs = [p[1] for p in list(history)]
+         left_side = min(start_x, x)
+         right_side = max(start_x, x)
 
-   min_y = min(ys)
-   max_y = max(ys)
-   min_x = min(xs)
-   max_x = max(xs)
-
-   # for y in range(min_y, max_y + 1):
-   #    for x in range(min_x, max_x + 1):
-   #       if (y, x) in history:
-   #          print('#', end = '')
-   #       else:
-   #          print('.', end = '')
-   #    print('')
-
-   sum = 0
-   inside = set()
-   for y in range(min_y, max_y + 1):
-      for x in range(min_x, max_x + 1):
-         if (y,x) in history:
-            inside.add((y,x))
-            sum += 1
-            continue
-
-         left_full = 0
-         left_ups = 0
-
-         for dx in range(min_x, x):
-            if (y, dx) in directions:
-               dirs = directions[(y, dx)]
-               if len(dirs) == 1:
-                  if dirs in ['U', 'D']:
-                     left_full += 1
-               else:
-                  if dirs in ['RU', 'DL', 'LU', 'DR']:
-                     left_ups += 1
-         
-         if left_ups != 0 and left_ups % 2 == 1:
-            left_full += 1
-
-         if left_full % 2 == 1:
-            inside.add((y,x))
-            sum += 1
+         lines.append((left_side, right_side, y))
    
+   return lines
 
-   # for y in range(min_y, max_y + 1):
-   #    for x in range(min_x, max_x + 1):
-   #       if (y, x) in inside:
-   #          if (y,x) in directions and directions[(y, x)] in ['RU', 'DL', 'LU', 'DR']:
-   #             print('$', end = '')
-   #          else:
-   #             print('#', end = '')
-   #       else:
-   #          print('.', end = '')
-   #    print('')
-   return sum
+def compute_area(lines):
+   min_x = min([l[0] for l in lines])
+   max_x = max([l[1] for l in lines])
+
+   max_y = max([l[2] for l in lines])
+
+   lines.sort(key = lambda line: line[2])
+
+   added_areas = []
+
+   result = 0
+
+   for line in lines:
+      start_x = line[0]
+      end_x = line[1]
+      y = line[2]
+
+      negative = False
+
+      for i, a in enumerate(added_areas):
+         if a[0] <= start_x < a[1]:
+            negative = True
+
+            left_border_exists = a[0] != start_x
+            right_border_exists = a[1] != end_x
+
+            area = (end_x - start_x + 1 - (1 if left_border_exists else 0) - (1 if right_border_exists else 0)) * (max_y - y)
+
+            result -= area
+
+            added_areas.pop(i)
+
+            if left_border_exists or right_border_exists:
+               if left_border_exists:
+                  added_areas.append((a[0], start_x))
+               if right_border_exists:
+                  added_areas.append((end_x, a[1]))
+            break
+
+      if not negative:
+         left_border_exists = False
+         right_border_exists = False
+
+         for a in added_areas:
+            if a[1] == start_x:
+               left_border_exists = True
+            if a[0] == end_x:
+               right_border_exists = True
+
+         area = (end_x - start_x + 1 - (1 if left_border_exists else 0) - (1 if right_border_exists else 0)) * (max_y - y + 1)
+         result += area
+
+         left_side = start_x
+         right_side = end_x
+
+         if left_border_exists:
+            for i, a in enumerate(added_areas):
+               if a[1] == start_x:
+                  added_areas.pop(i)
+                  left_side = a[0]
+                  break
+
+         if right_border_exists:
+            for i, a in enumerate(added_areas):
+               if a[0] == end_x:
+                  added_areas.pop(i)
+                  right_side = a[1]
+                  break
+
+         added_areas.append((left_side, right_side))
+
+   return result
+
+
+def part_1(vals):
+   lines = draw_lines(vals)
+   result = compute_area(lines)
+
+   return result   
 
 def parse_hex(hex):
    hex = hex[2:-1]
