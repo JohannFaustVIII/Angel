@@ -25,30 +25,10 @@ def parse_input(inp):
 def get_distances(connections):
    distances = {k : {k : 0} for k in connections.keys()}
 
-
-def get_solution(removed_connections, connections):
-   for rc in removed_connections:
-      left = rc[0]
-      right = rc[1]
-
-      connections[left].remove(right)
-      connections[right].remove(left)
-
-   group = set([left])
-   next = set([left])
-
-   while next:
-      n = next.pop()
-      for k in connections[n]:
-         if k not in group:
-            next.add(k)
-         group.add(k)
-   
-   return len(group) * (len(connections) - len(group))
-
 def part_1(connections):
 
    first_group = set(connections)
+   first_group.remove('spb') # to avoid failing because of removing neighbour node
 
    count = lambda v: len(connections[v] - first_group)
 
