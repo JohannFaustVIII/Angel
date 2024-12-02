@@ -132,3 +132,4 @@ dmypy.json
 offers/
 202*.txt
 *.input
+data.txt
