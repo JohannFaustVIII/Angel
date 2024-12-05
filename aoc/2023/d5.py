@@ -72,7 +72,6 @@ def map_range(seed_range, map):
 def part_1(seeds, maps):
    result = [s for s in seeds]
    for map in maps:
-      print(result)
       result = [map_position(s, map) for s in result]
       
    print(result)
@@ -83,7 +82,6 @@ def part_2(seeds, maps):
    for i in range(0, len(seeds), 2):
       seed_ranges.append((seeds[i], seeds[i+1]))
    for map in maps:
-      # print(result)
       new_seed_ranges = []
       for s in seed_ranges:
          new_seed_ranges.extend(map_range(s, map))
